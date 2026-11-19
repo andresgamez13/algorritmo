@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Algorritmo</title>
+  <link rel="stylesheet" href="./algorritmo.css?v=4">
+  <link rel="stylesheet" href="./timeline.css?v=5">
+  <link rel="stylesheet" href="./recognition.css?v=5">
+  <script defer src="./vendor/d3.v7.9.0.min.js"></script>
+  <script type="module">
+    import("./src/main.js?v=5").then(({ main }) => main()).catch(error => {
+      document.getElementById("app-status").textContent = "No se pudo iniciar Algorritmo. " + error.message;
+    });
+  </script>
+</head>
+<body>
+<!-- BIENVENIDA -->
+<section class="screen on" id="s-bienvenida" aria-label="Bienvenida">
+  <svg class="wave" width="320" height="200" viewBox="0 0 320 200" aria-hidden="true"><path d="M0 120c30 0 36 2 48-24 12-30 22-46 28-8 6 38 12 64 24 64 16 0 20-60 28-80l12-36-4 164 18-150c6-30 14-20 18 20 6 50 10 80 24 76 12-4 8-62 14-62 14 0 18 20 22 34 6 18 12 18 38 18" fill="none" stroke="#A259F7" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/></svg>
+  <h1>¡Bienvenido a Algorritmo!</h1>
+  <p>Explora cómo se influyen los artistas y los géneros musicales, y descubre quiénes vienen subiendo.</p>
+  <p id="app-status" role="status">Cargando el grafo musical…</p>
+  <div class="choices">
+    <button class="choice" type="button" disabled data-intent="influencias"><b>Rastrear influencias</b><span>Quién inspiró a quién y cómo evolucionó un género.</span></button>
+    <button class="choice" type="button" disabled data-intent="emergentes"><b>Ver artistas emergentes</b><span>Quién viene subiendo y cómo se compara con otros.</span></button>
+  </div>
+</section>
+
+<!-- APP -->
+<div class="screen app" id="s-app">
+  <header class="topbar">
+    <button class="logo" type="button" data-go="bienvenida" aria-label="Algorritmo, volver al inicio">
+      <svg width="52" height="32" viewBox="0 0 320 200" aria-hidden="true"><path d="M0 120c30 0 36 2 48-24 12-30 22-46 28-8 6 38 12 64 24 64 16 0 20-60 28-80l12-36-4 164 18-150c6-30 14-20 18 20 6 50 10 80 24 76 12-4 8-62 14-62 14 0 18 20 22 34 6 18 12 18 38 18" fill="none" stroke="#A259F7" stroke-linecap="round" stroke-linejoin="round" stroke-width="14"/></svg>
+      <b>Algorritmo</b>
+    </button>
+    <nav class="nav" id="topnav" aria-label="Secciones">
+      <button type="button" data-go="influencias">Rastrear influencias</button>
+      <button type="button" data-go="emergentes">Artistas emergentes</button>
+    </nav>
+  </header>
+
+  <main class="main">
+    <!-- ELEGIR GENERO -->
+    <section class="view" id="v-genero" aria-label="Elegir género">
+      <div class="pick">
+        <h1 class="title">¿Con cuál género deseas iniciar?</h1>
+        <select id="genrePick" aria-label="Género"></select>
+        <button class="btn" type="button" id="goIntent">Continuar</button>
+      </div>
+    </section>
+
+    <!-- INFLUENCIAS -->
+    <section class="view" id="v-influencias" aria-label="Rastrear influencias">
+      <h1 class="title">Explora la evolución de la música</h1>
+      <label class="searchsel">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#A8A3C8" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="M20 20l-4.5-4.5"/></svg>
+        <select id="genreInf" aria-label="Género"></select>
+      </label>
+      <div class="timeline-filters">
+        <label>Mostrar <select id="work-type"><option value="Song">Canciones</option><option value="all">Canciones y álbumes</option></select></label>
+        <div class="years">
+          <span id="year-start"></span>
+          <div class="dual">
+            <div class="track"></div><div class="fill" id="yFill"></div>
+            <input type="range" id="yMin" step="1" aria-label="Año inicial">
+            <input type="range" id="yMax" step="1" aria-label="Año final">
+          </div>
+          <span id="year-end"></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-header">
+          <h3>Línea de tiempo</h3>
+          <span class="sub" id="tlCount"></span>
+        </div>
+        <div id="timeline" class="chart-scroll" tabindex="0" role="region" aria-label="Línea de tiempo de obras"></div>
+        <div class="legend plot-legend">
+          <span><i class="dot" style="background:var(--teal)"></i>Obra publicada</span>
+          <span><i class="dot" style="background:#f46de0"></i>Obra seleccionada</span>
+          <span>Abre o cierra un año desde su punto central. Los arcos llegan al grupo cuando está cerrado.</span>
+        </div>
+      </div>
+      <div class="influence-layout">
+        <div class="card">
+          <div class="detail" id="workDetail"></div>
+        </div>
+        <div class="card">
+          <h3>Red de influencias</h3>
+          <div id="work-network" class="chart-scroll" tabindex="0" role="region" aria-label="Red de influencias"><svg id="miniNet" class="viz" role="img" aria-label="Red de influencias de la obra seleccionada"></svg></div>
+          <p id="network-empty" class="sub">Selecciona una obra.</p>
+          <div class="legend">
+            <span><svg width="30" height="10" aria-hidden="true"><line x1="0" y1="5" x2="22" y2="5" stroke="#C9A7FF" stroke-width="2"/><path d="M22,1L30,5L22,9" fill="#C9A7FF"/></svg>Influyó en</span>
+            <span><svg width="30" height="10" aria-hidden="true"><line x1="0" y1="5" x2="22" y2="5" stroke="#5FD0D6" stroke-width="2" stroke-dasharray="4 3"/><path d="M22,1L30,5L22,9" fill="#5FD0D6"/></svg>Se inspiró en</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMERGENTES -->
+    <section class="view" id="v-emergentes" aria-label="Rastrear artistas emergentes">
+      <h1 class="title">Artistas emergentes</h1>
+      <div class="filters">
+        <select id="genreEm" aria-label="Género"></select>
+        <label>Año <select id="yearEm"></select></label>
+        <label>Artistas incluidos <select id="cohort">
+          <option value="all">Todos los que publicaron</option>
+          <option value="recognized">Con reconocimiento fechado</option>
+        </select></label>
+      </div>
+      <div class="emgrid">
+        <div class="card">
+            <div class="chart-header"><h3>Reconocimiento de artistas y bandas</h3><p id="recognition-count" class="sub" role="status"></p></div>
+            <div id="bubble-chart" class="chart-scroll" tabindex="0" role="region" aria-label="Mapa de cuadrantes de artistas"></div>
+            <div class="legend" style="margin-top:6px">
+              <span><i class="dot" style="background:var(--q-em)"></i>Emergentes</span>
+              <span><i class="dot" style="background:var(--q-co)"></i>Consolidados</span>
+              <span><i class="dot" style="background:var(--q-pi)"></i>Pierden impulso</span>
+              <span><i class="dot" style="background:var(--q-bt)"></i>Baja tracción</span>
+              <span><svg width="34" height="18" aria-hidden="true"><circle cx="6" cy="9" r="4" fill="#7D78A0"/><circle cx="23" cy="9" r="8.5" fill="#7D78A0"/></svg>Más grande = más obras publicadas</span>
+            </div>
+        </div>
+        <div class="emerging-side">
+          <div class="card podium-card">
+            <h3>Top 3 de emergentes</h3>
+            <p class="sub" id="emerging-summary" role="status"></p>
+            <ol class="podium" id="rank" role="list"></ol>
+          </div>
+          <div class="card" id="artist-details" hidden>
+            <label>Artistas en este punto <select id="coordinate-artist"></select></label>
+            <button id="compare-artist" class="btn ghost" type="button">Comparar artista</button>
+            <p id="artist-metrics" class="sub" role="status"></p>
+          </div>
+        </div>
+      </div>
+      <section class="card" id="cmpCard" aria-labelledby="comparison-heading">
+        <header class="comparison-heading">
+          <h3 id="comparison-heading">Comparación</h3>
+          <div class="selbar" id="selbar"></div>
+        </header>
+        <p id="comparison-empty" class="sub">Selecciona hasta cuatro artistas en el gráfico o en el podio.</p>
+        <div id="cmpBody" class="trio" tabindex="0" role="region" aria-label="Gráficos de comparación" hidden>
+          <div class="mini"><h4>Éxitos acumulados</h4><p>Reconocimientos fechados en los últimos ocho años.</p><svg id="c1" class="viz" viewBox="0 0 360 185" role="img" aria-label="Éxitos acumulados por artista"></svg></div>
+          <div class="mini"><h4>Cómo otros usan su música</h4><p>Relaciones de influencia registradas, por tipo.</p><svg id="c2" class="viz" viewBox="0 0 360 150" role="img" aria-label="Tipos de influencia por artista"></svg><div class="legend" id="comparison-legend"></div></div>
+          <div class="mini"><h4>Productividad</h4><p>Canciones y álbumes del género publicados hasta el año elegido.</p><svg id="c3" class="viz" viewBox="0 0 360 155" role="img" aria-label="Obras publicadas por artista"></svg></div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+</body>
+</html>

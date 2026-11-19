@@ -1,0 +1,123 @@
+#bubble-chart {
+  margin-top: .65rem;
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+  background: #0c101a;
+}
+#bubble-chart svg {
+  display: block;
+  width: 100%;
+  min-width: 34rem;
+  max-height: clamp(17rem, 38vh, 22rem);
+}
+.quadrant-zone.emerging { fill: #102b24; }
+.quadrant-zone.established { fill: #131f39; }
+.quadrant-zone.low { fill: #1c202b; }
+.quadrant-zone.slowing { fill: #2c2217; }
+.quadrant-name { font-size: 12px; font-weight: 750; letter-spacing: .03em; }
+.emerging { --quadrant: #60dfa2; }
+.established { --quadrant: #7daaff; }
+.low { --quadrant: #becad8; }
+.slowing { --quadrant: #ffc369; }
+.quadrant-name, .artist-bubble { fill: var(--quadrant); }
+.recognition-axis { color: #aeb9cc; font: 12px system-ui, sans-serif; }
+.recognition-axis .domain { stroke: #8f95a7; }
+.recognition-axis line { stroke: #73778c; stroke-opacity: .4; stroke-dasharray: 2 5; }
+.recognition-axis-label, .artist-point-label { fill: #e7e4f2; font-size: 13px; }
+.artist-point-label {
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: #121420;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.median-guide { stroke: #d2cbe2; opacity: .6; stroke-dasharray: 4 4; }
+.artist-point { cursor: pointer; }
+.artist-point:focus-visible { outline: none; }
+.artist-point:hover .artist-bubble, .artist-point:focus-visible .artist-bubble { stroke: white; }
+.artist-bubble { stroke: var(--quadrant); stroke-width: 1; }
+.artist-selections { pointer-events: none; }
+.artist-highlight { fill: none; stroke-width: 2; }
+.emgrid { align-items: start; }
+.emerging-side { display: grid; gap: 12px; min-width: 0; }
+#artist-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: .5rem .75rem;
+  padding-block: .75rem;
+}
+#artist-details label { display: grid; flex: 1 1 12rem; min-width: 0; gap: .25rem; }
+#artist-details select { min-width: 0; max-width: 100%; }
+#artist-details .btn { min-height: 40px; font-size: .9rem; padding: .4rem .85rem; }
+#artist-metrics { flex-basis: 100%; }
+#emerging-summary { margin: .25rem 0 .35rem; }
+.podium-card { padding-block: .75rem; }
+.podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: clamp(.25rem, 1vw, .75rem);
+  list-style: none;
+  margin: 0;
+  padding: .4rem 0 0;
+}
+.podium:empty { display: none; }
+.podium-place { grid-row: 1; min-width: 0; }
+.podium-place[data-place="1"] { grid-column: 2; --step: 4.25rem; --medal: #f8d781; --medal-bg: #523925; }
+.podium-place[data-place="2"] { grid-column: 1; --step: 3.3rem; --medal: #c9d6f0; --medal-bg: #353950; }
+.podium-place[data-place="3"] { grid-column: 3; --step: 2.5rem; --medal: #ecae8b; --medal-bg: #4a302f; }
+.podium button {
+  display: grid;
+  width: 100%;
+  border: 0;
+  border-radius: .5rem;
+  padding: 0;
+  text-align: center;
+  background: transparent;
+  cursor: pointer;
+}
+.podium-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  padding: 0 .2rem;
+  line-height: 1.2;
+  font-size: .9rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.podium-value { color: var(--muted); font-size: .85rem; margin: .2rem 0 .45rem; }
+.podium-step {
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  min-height: var(--step);
+  padding: .38rem .2rem;
+  background: linear-gradient(var(--medal-bg), var(--panel2));
+  color: var(--medal);
+  border: 1px solid var(--medal-bg);
+  border-top: 2px solid var(--medal);
+  border-radius: .45rem .45rem .15rem .15rem;
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+  line-height: 1.2;
+  font-weight: 700;
+}
+.podium button:hover .podium-step { border-color: var(--medal); }
+.podium button[aria-pressed="true"] .podium-step {
+  box-shadow: inset 0 0 0 2px var(--artist-color);
+}
+.comparison-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .55rem 1rem;
+  margin-bottom: .65rem;
+}
+.comparison-axis, .comparison-grid { color: var(--muted); font-size: 11px; }
+.comparison-grid .domain { display: none; }
+.comparison-grid line { stroke: var(--line); }
+.comparison-influences text, .comparison-productivity text { font-size: 12px; }
+.comparison-influences text:not([fill]), .comparison-productivity text:not([fill]) { fill: var(--text); }
+#comparison-legend { font-size: .8rem; }

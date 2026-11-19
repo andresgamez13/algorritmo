@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Algorritmo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto+Condensed:ital,wght@1,600;1,700&family=Roboto:wght@400;500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+[hidden]{display:none!important}
+body{margin:0}
+/* Layout: barra lateral fija + escenario oscuro; pantallas que se cambian sin recargar */
+:root{
+  --bg:#0B0B14; --side:#16142A; --panel:#17152A; --panel2:#221F3A; --line:#2F2B4D;
+  --text:#ECEAF8; --muted:#A8A3C8; --dim:#7D78A0;
+  --violet:#A259F7; --violet2:#5B5FD6; --teal:#2EC5CE;
+  --q-em:#22C55E; --q-co:#3B82F6; --q-bt:#94A3B8; --q-pi:#F59E0B;
+  --f-logo:'Playfair Display',Georgia,serif; --f-title:'Roboto Condensed','Arial Narrow',sans-serif; --f-body:Roboto,system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:15px;line-height:1.5}
+h1,h2,h3,p{margin:0}
+:focus-visible{outline:2px solid #C9A7FF;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+button,select,input{font:inherit;color:inherit}
+.screen{display:none}
+.screen.on{display:flex}
+/* bienvenida */
+#s-bienvenida{min-height:100vh;flex-direction:column;align-items:center;justify-content:center;gap:28px;text-align:center;padding-block:40px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.wave path{stroke-dasharray:900;stroke-dashoffset:900;animation:draw 1.6s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+#s-bienvenida h1{font-family:var(--f-body);font-weight:700;font-size:clamp(34px,6vw,64px);line-height:1.1;text-wrap:balance}
+#s-bienvenida p{color:var(--muted);max-width:560px;font-size:17px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 22px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--violet),var(--violet2));color:#fff;font-weight:600;cursor:pointer;font-size:16px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:var(--panel2);border:1px solid var(--line)}
+ /* app */
+.app{min-height:100vh;width:100%;flex-direction:column}
+.topbar{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px;padding-block:12px;padding-left:max(24px, env(safe-area-inset-left, 0px));padding-right:max(24px, env(safe-area-inset-right, 0px));background:rgba(14,13,26,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:21;background:#0E0D1A}
+.logo{display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:4px 0;min-height:44px}
+.logo b{font-family:var(--f-logo);font-size:24px;line-height:1}
+.nav{display:flex;flex-wrap:wrap;gap:8px}
+.nav[hidden]{display:none}
+.nav button{all:unset;cursor:pointer;padding:10px 16px;border-radius:12px;color:var(--muted);font-size:15.5px;line-height:1.2;min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center;border:1px solid transparent}
+.nav button:hover{color:var(--text);background:var(--panel2)}
+.nav button:focus-visible{outline:2px solid #C9A7FF}
+.nav button[aria-current=page]{background:linear-gradient(135deg,#8A3FD8,#4D57B8);color:#fff}
+select{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-height:40px;cursor:pointer}
+.main{flex:1;min-width:0;padding-block:24px 40px;padding-left:max(28px, env(safe-area-inset-left, 0px));padding-right:max(28px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:20px;position:relative;width:100%;max-width:1500px;margin:0 auto}
+.main::before{content:"";position:absolute;right:0;top:0;width:520px;max-width:60%;height:110px;background:radial-gradient(ellipse at 70% 40%,rgba(162,89,247,.18),transparent 70%);pointer-events:none}
+.choices{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;width:min(760px,100%)}
+.choice{all:unset;box-sizing:border-box;cursor:pointer;flex:1 1 300px;display:flex;flex-direction:column;gap:6px;text-align:left;padding:20px 22px;border-radius:18px;background:var(--panel);border:1px solid var(--line);min-height:44px;transition:border-color .15s,transform .15s}
+.choice:hover{border-color:#8A5BE0;transform:translateY(-2px)}
+.choice:focus-visible{outline:2px solid #C9A7FF}
+.choice b{font-size:20px;font-family:var(--f-title);font-style:italic}
+.choice span{color:var(--muted);font-size:14.5px}
+.choice.primary{background:linear-gradient(135deg,rgba(162,89,247,.28),rgba(91,95,214,.22));border-color:#6A4FC0}
+.title{font-family:var(--f-title);font-style:italic;font-weight:700;font-size:clamp(30px,4vw,46px);line-height:1.1;text-wrap:balance}
+.lead{color:var(--muted);max-width:720px}
+.view{display:none;flex-direction:column;gap:20px}
+.view.on{display:flex}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 20px;min-width:0}
+.card h2{font-family:var(--f-logo);font-size:24px;line-height:1.2}
+.card h3{font-family:var(--f-title);font-style:italic;font-weight:600;font-size:21px}
+.sub{color:var(--muted);font-size:14px}
+.searchsel{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:6px 16px}
+.searchsel select{flex:1;border:none;background:transparent;font-size:20px;font-weight:700;padding:6px 0}
+.searchsel select option{background:#221F3A}
+.row{display:flex;flex-wrap:wrap;gap:18px}
+.grow{flex:999 1 520px;min-width:0}
+.aside{flex:1 1 280px;min-width:0}
+/* genre picker */
+.pick{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;min-height:72vh;text-align:center}
+.pick .title{font-size:clamp(30px,4.6vw,56px)}
+.pick select{font-size:24px;min-width:min(420px,100%);padding:14px 18px;border-radius:14px}
+/* years range */
+.years{display:flex;flex-direction:column;gap:6px;align-self:center;width:min(440px,100%)}
+.years .lab{display:flex;justify-content:space-between;font-size:16px}
+.dual{position:relative;height:28px}
+.dual input{position:absolute;inset:0;width:100%;pointer-events:none;-webkit-appearance:none;appearance:none;background:none;margin:0}
+.dual input::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#9FD3CF;border:3px solid #0B0B14;cursor:pointer}
+.dual input::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;background:#9FD3CF;border:3px solid #0B0B14;cursor:pointer}
+.dual .track{position:absolute;left:0;right:0;top:12px;height:4px;border-radius:4px;background:#3A365A}
+.dual .fill{position:absolute;top:12px;height:4px;border-radius:4px;background:#E8E6F2}
+.viz{width:100%;display:block}
+.howto{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:13.5px;background:#1C1A33;border:1px dashed #3C3766;border-radius:12px;padding:10px 12px;margin-top:10px}
+.howto b{color:var(--text)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;flex:0 0 11px;display:inline-block}
+.detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0}
+.detail > div{padding:4px 18px}
+.detail > div + div{border-left:1px solid var(--line)}
+.detail h2{font-size:26px}
+.kv{color:var(--muted);font-size:17px}
+.kv b{color:var(--text);font-weight:500}
+ul.plain{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.infl b{display:block;font-family:var(--f-title);font-style:italic;font-weight:600;font-size:18px;line-height:1.2}
+.infl span{color:var(--muted)}
+.tag{display:inline-block;font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:6px;color:var(--muted);font-style:normal}
+.empty{color:var(--dim);font-size:15px;text-align:center;padding:30px 10px}
+.filters{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.filters label{display:flex;gap:8px;align-items:center;color:var(--muted)}
+.rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.rank button{all:unset;display:flex;flex-direction:column;gap:5px;width:100%;cursor:pointer;padding:8px 10px;border-radius:10px;box-sizing:border-box}
+.rank button:hover{background:var(--panel2)}
+.rank button[aria-pressed=true]{background:#2A2650;outline:1px solid #6A5AC8}
+.rank .bar{height:7px;border-radius:6px;background:#2A2748;overflow:hidden}
+.rank .bar i{display:block;height:100%;border-radius:6px}
+.rank .top{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.rank small{color:var(--muted);font-variant-numeric:tabular-nums}
+.selbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.selchip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:4px 6px 4px 12px;font-size:14px}
+.selchip button{all:unset;cursor:pointer;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;color:var(--muted)}
+.selchip button:hover{background:#3A365A;color:#fff}
+.trio{display:flex;flex-direction:column;gap:12px}
+.emgrid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);gap:18px;align-items:start}
+.side-col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.mini{background:#1B1932;border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0}
+.mini h4{margin:0 0 2px;font-size:15px}
+.mini p{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+.tip{position:fixed;pointer-events:none;background:#0A0914;border:1px solid #3C3766;border-radius:10px;padding:8px 12px;font-size:13px;max-width:280px;z-index:30;opacity:0;transition:opacity .12s}
+.tip b{display:block}
+@media (max-width:1100px){ .emgrid{grid-template-columns:1fr} }
+@media (max-width:860px){
+  .topbar{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+  .logo b{font-size:20px}
+  .nav button{font-size:14px;padding:8px 12px}
+  .main{padding-block:18px 32px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+  .detail{grid-template-columns:1fr}.detail > div + div{border-left:none;border-top:1px solid var(--line);padding-top:14px;margin-top:10px}
+}
+</style>
+<script src="data.js"></script>
+</head>
+<body>
+
+<!-- BIENVENIDA -->
+<section class="screen" id="s-bienvenida" aria-label="Bienvenida">
+  <svg class="wave" width="320" height="200" viewBox="0 0 320 200" aria-hidden="true"><path d="M0 120c30 0 36 2 48-24 12-30 22-46 28-8 6 38 12 64 24 64 16 0 20-60 28-80l12-36-4 164 18-150c6-30 14-20 18 20 6 50 10 80 24 76 12-4 8-62 14-62 14 0 18 20 22 34 6 18 12 18 38 18" fill="none" stroke="#A259F7" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/></svg>
+  <h1>¡Bienvenido a Algorritmo!</h1>
+  <p>Explora cómo se influyen los artistas y los géneros musicales, y descubre quiénes vienen subiendo.</p>
+  <div class="choices">
+    <button class="choice" type="button" data-intent="influencias"><b>Rastrear influencias</b><span>Quién inspiró a quién y cómo evolucionó un género.</span></button>
+    <button class="choice" type="button" data-intent="emergentes"><b>Ver artistas emergentes</b><span>Quién viene subiendo y cómo se compara con otros.</span></button>
+  </div>
+</section>
+
+<!-- APP -->
+<div class="screen app" id="s-app">
+  <header class="topbar">
+    <button class="logo" type="button" data-go="bienvenida" aria-label="Algorritmo, volver al inicio">
+      <svg width="52" height="32" viewBox="0 0 320 200" aria-hidden="true"><path d="M0 120c30 0 36 2 48-24 12-30 22-46 28-8 6 38 12 64 24 64 16 0 20-60 28-80l12-36-4 164 18-150c6-30 14-20 18 20 6 50 10 80 24 76 12-4 8-62 14-62 14 0 18 20 22 34 6 18 12 18 38 18" fill="none" stroke="#A259F7" stroke-linecap="round" stroke-linejoin="round" stroke-width="14"/></svg>
+      <b>Algorritmo</b>
+    </button>
+    <nav class="nav" id="topnav" aria-label="Secciones">
+      <button type="button" data-go="influencias">Rastrear influencias</button>
+      <button type="button" data-go="emergentes">Artistas emergentes</button>
+    </nav>
+  </header>
+
+  <main class="main">
+    <!-- ELEGIR GENERO -->
+    <section class="view" id="v-genero" aria-label="Elegir género">
+      <div class="pick">
+        <h1 class="title">¿Con cuál género deseas iniciar?</h1>
+        <select id="genrePick" aria-label="Género"></select>
+        <button class="btn" type="button" id="goIntent">Continuar</button>
+      </div>
+    </section>
+
+    <!-- INFLUENCIAS -->
+    <section class="view" id="v-influencias" aria-label="Rastrear influencias">
+      <h1 class="title">Explora la evolución de la música</h1>
+      <label class="searchsel">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#A8A3C8" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="M20 20l-4.5-4.5"/></svg>
+        <select id="genreInf" aria-label="Género"></select>
+      </label>
+      <div class="years">
+        <div class="lab"><span>Años</span><span id="yLab"></span></div>
+        <div class="dual"><div class="track"></div><div class="fill" id="yFill"></div>
+          <input type="range" id="yMin" min="1975" max="2040" step="1" aria-label="Año inicial">
+          <input type="range" id="yMax" min="1975" max="2040" step="1" aria-label="Año final">
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline">
+          <h3>Obras más influyentes del género</h3>
+          <span class="sub" id="tlCount"></span>
+        </div>
+        <svg id="tlViz" class="viz" viewBox="0 0 1100 320" role="img" aria-label="Línea de tiempo de las obras más influyentes"></svg>
+        <div class="legend">
+          <span><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="#2EC5CE"/></svg>Entró a un ranking de éxitos</span>
+          <span><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="#0B0B14" stroke="#2EC5CE" stroke-width="2"/></svg>No entró a rankings</span>
+          <span><svg width="34" height="18" aria-hidden="true"><circle cx="6" cy="9" r="4" fill="#7D78A0"/><circle cx="23" cy="9" r="8.5" fill="#7D78A0"/></svg>Más grande = influyó en más obras</span>
+          <span><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="#A259F7"/></svg>Obra seleccionada</span>
+        </div>
+        <div class="howto"><span aria-hidden="true">ℹ</span><span><b>Cómo leerlo:</b> cada punto es una de las obras del género que más influyeron en otras, ubicada en su <b>año de lanzamiento</b>. Si varias salen el mismo año se apilan. Haz clic en un punto para ver su detalle y su red de influencias. Mueve la barra de <b>Años</b> para acotar el período.</span></div>
+      </div>
+      <div class="row">
+        <div class="card grow">
+          <div class="detail" id="workDetail"></div>
+        </div>
+        <div class="card aside">
+          <h3>Red de influencias</h3>
+          <svg id="miniNet" class="viz" viewBox="0 0 420 300" role="img" aria-label="Red de influencias de la obra seleccionada"></svg>
+          <div class="legend">
+            <span><svg width="30" height="10" aria-hidden="true"><line x1="0" y1="5" x2="22" y2="5" stroke="#C9A7FF" stroke-width="2"/><path d="M22,1L30,5L22,9" fill="#C9A7FF"/></svg>Influyó en</span>
+            <span><svg width="30" height="10" aria-hidden="true"><line x1="0" y1="5" x2="22" y2="5" stroke="#5FD0D6" stroke-width="2" stroke-dasharray="4 3"/><path d="M22,1L30,5L22,9" fill="#5FD0D6"/></svg>Se inspiró en</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMERGENTES -->
+    <section class="view" id="v-emergentes" aria-label="Rastrear artistas emergentes">
+      <h1 class="title">Artistas emergentes</h1>
+      <div class="filters">
+        <select id="genreEm" aria-label="Género"></select>
+        <label for="yearEm">Hasta el año <select id="yearEm"></select></label>
+      </div>
+      <div class="emgrid">
+        <div class="card">
+            <svg id="quad" class="viz" viewBox="0 0 860 520" role="img" aria-label="Mapa de cuadrantes de artistas"></svg>
+            <div class="legend" style="margin-top:6px">
+              <span><i class="dot" style="background:var(--q-em)"></i>Emergentes</span>
+              <span><i class="dot" style="background:var(--q-co)"></i>Consolidados</span>
+              <span><i class="dot" style="background:var(--q-pi)"></i>Pierden impulso</span>
+              <span><i class="dot" style="background:var(--q-bt)"></i>Baja tracción</span>
+              <span><svg width="34" height="18" aria-hidden="true"><circle cx="6" cy="9" r="4" fill="#7D78A0"/><circle cx="23" cy="9" r="8.5" fill="#7D78A0"/></svg>Más grande = más artistas toman de su música</span>
+            </div>
+            <div class="howto"><span aria-hidden="true">ℹ</span><span><b>Cómo leerlo:</b> hacia la <b>derecha</b> está el reconocimiento acumulado (total de obras que entraron a rankings). Hacia <b>arriba</b>, el ritmo: obras reconocidas por cada año desde su debut. Las líneas punteadas marcan el valor típico (mediana) del género. Arriba a la izquierda están los <b>emergentes</b>: logran éxitos rápido sin tener todavía una gran trayectoria. Haz clic en los círculos para elegir artistas.</span></div>
+        </div>
+        <div class="side-col">
+          <div class="card">
+            <h3 style="margin-bottom:4px">Top emergentes</h3>
+            <p class="sub" style="margin-bottom:10px">Ordenados por su ritmo de éxitos. Toca uno para seleccionarlo.</p>
+            <ol class="rank" id="rank"></ol>
+          </div>
+          <div class="card" id="cmpCard">
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
+              <h3>Comparación</h3>
+              <div class="selbar" id="selbar"></div>
+            </div>
+            <div id="cmpBody"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const D = window.ALG_DATA; // datos del grafo, cargados desde data.js
+const SELC = ["#2EC5CE","#3B82F6","#A259F7","#F59E0B"];
+const TYPES = {CoverOf:"Cover",DirectlySamples:"Sample",InterpolatesFrom:"Interpolación",InStyleOf:"Estilo",LyricalReferenceTo:"Referencia lírica"};
+const TYPEC = {CoverOf:"#2EC5CE",DirectlySamples:"#3B82F6",InterpolatesFrom:"#A259F7",InStyleOf:"#F59E0B",LyricalReferenceTo:"#22C55E"};
+const QC = {em:"#22C55E",co:"#3B82F6",bt:"#94A3B8",pi:"#F59E0B"};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tip = document.getElementById("tip");
+function showTip(e, h){ tip.innerHTML = h; tip.style.opacity = 1; tip.style.left = Math.min(e.clientX + 14, innerWidth - 300) + "px"; tip.style.top = (e.clientY + 14) + "px"; }
+function hideTip(){ tip.style.opacity = 0; }
+
+const S = { intent: "influencias", genre: "Oceanus Folk", from: 1975, to: 2040, work: null, yearEm: 2040, sel: [] };
+
+/* ---------- selects ---------- */
+const big = D.genres.filter(g => g.n >= 20);
+function fillGenre(sel){ sel.innerHTML = big.map(g => `<option value="${esc(g.g)}">${esc(g.g)}</option>`).join(""); }
+["genrePick","genreInf","genreEm"].forEach(id => { const el = document.getElementById(id); fillGenre(el); el.onchange = () => setGenre(el.value); });
+document.querySelectorAll("[data-intent]").forEach(b => b.onclick = () => { S.intent = b.dataset.intent; go("genero"); });
+document.getElementById("goIntent").onclick = () => go(S.intent || "influencias");
+function setGenre(g){ S.genre = g; S.work = null; S.sel = []; ["genrePick","genreInf","genreEm"].forEach(id => document.getElementById(id).value = g); render(); }
+const yE = document.getElementById("yearEm"); for (let y = 2000; y <= 2040; y += 5) yE.add(new Option(y, y));
+yE.value = 2040; yE.onchange = () => { S.yearEm = +yE.value; drawEm(); };
+function setRange(a, b){ S.from = Math.min(a, b); S.to = Math.max(a, b); syncRange(); if (S.view === "influencias") drawTimeline(); }
+function syncRange(){ yMin.value = S.from; yMax.value = S.to; yLab.textContent = `${S.from}-${S.to}`;
+  const p = v => (v - 1975) / 65 * 100; yFill.style.left = p(S.from) + "%"; yFill.style.width = (p(S.to) - p(S.from)) + "%"; }
+yMin.oninput = () => setRange(+yMin.value, +yMax.value); yMax.oninput = () => setRange(+yMin.value, +yMax.value);
+
+/* ---------- navigation ---------- */
+const VIEWS = ["bienvenida","genero","influencias","emergentes"];
+function show(v){
+  S.view = v; hideTip();
+  document.getElementById("s-bienvenida").classList.toggle("on", v === "bienvenida");
+  document.getElementById("s-app").classList.toggle("on", v !== "bienvenida");
+  ["genero","influencias","emergentes"].forEach(x => document.getElementById("v-" + x).classList.toggle("on", x === v));
+  document.querySelectorAll(".nav button").forEach(b => { if (b.dataset.go === v) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  document.getElementById("topnav").hidden = v === "genero";
+  document.getElementById("goIntent").textContent = (S.intent || "influencias") === "emergentes" ? "Ver artistas emergentes" : "Rastrear influencias";
+  render(); try { window.scrollTo(0, 0); } catch(e) {}
+}
+function go(v){ if (!VIEWS.includes(v)) v = "bienvenida"; show(v); try { history.replaceState(null, "", "#" + v); } catch(e) {} }
+document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (!b) return; e.preventDefault(); go(b.dataset.go); });
+window.addEventListener("hashchange", () => { let v = ""; try { v = location.hash.slice(1); } catch(e) {} if (VIEWS.includes(v) && v !== S.view) show(v); });
+function render(){ if (S.view === "influencias") drawTimeline(); if (S.view === "emergentes") drawEm(); if (S.view === "genero") document.getElementById("genrePick").value = S.genre; }
+
+/* ---------- INFLUENCIAS ---------- */
+function drawTimeline(){
+  syncRange();
+  const all = D.tl[S.genre] || [];
+  const data = all.filter(d => d.y >= S.from && d.y <= S.to);
+  tlCount.textContent = `${data.length} obras · ${S.from}-${S.to}`;
+  if (!S.work || !data.some(d => d.id === S.work)) S.work = data.length ? [...data].sort((a,b) => b.nout - a.nout)[0].id : null;
+  const W = 1100, H = 320, m = {l:40, r:40}, base = 165;
+  const x = d3.scaleLinear().domain([S.from, S.to === S.from ? S.from + 1 : S.to]).range([m.l, W - m.r]);
+  const r = d3.scaleSqrt().domain([0, d3.max(all, d => d.nout) || 1]).range([5, 15]);
+  const svg = d3.select("#tlViz"); svg.selectAll("*").remove();
+  const span = S.to - S.from, step = span > 40 ? 10 : span > 15 ? 5 : span > 6 ? 2 : 1;
+  const ticks = d3.range(Math.ceil(S.from / step) * step, S.to + 1, step);
+  if (!ticks.includes(S.from)) ticks.unshift(S.from); if (!ticks.includes(S.to)) ticks.push(S.to);
+  const tk = svg.append("g").selectAll("g").data(ticks.filter((t,i,a) => i === 0 || i === a.length - 1 || (x(t) - x(a[0]) > 40 && x(a[a.length-1]) - x(t) > 40))).join("g");
+  tk.append("line").attr("x1", x).attr("x2", x).attr("y1", 48).attr("y2", H - 20).attr("stroke", "#4A4570").attr("stroke-dasharray", "3 5");
+  tk.append("text").attr("x", x).attr("y", 34).attr("text-anchor", "middle").attr("fill", "#D9D6EA").attr("font-size", 18).text(d => d);
+  svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", base).attr("y2", base).attr("stroke", "#2EC5CE").attr("stroke-width", 2);
+  // stack same-year works
+  const pos = []; d3.groups(data, d => d.y).forEach(([y, arr]) => arr.sort((a,b) => b.nout - a.nout).forEach((d, i) => pos.push({...d, cx: x(y), cy: base + (i === 0 ? 0 : (i % 2 ? -1 : 1) * Math.ceil(i / 2) * Math.min(30, 100 / Math.ceil((arr.length - 1) / 2)))})));
+  const g = svg.append("g").selectAll("g").data(pos).join("g").attr("transform", d => `translate(${d.cx},${d.cy})`).style("cursor", "pointer")
+    .attr("tabindex", 0).attr("role", "button").attr("aria-label", d => `${d.y} ${d.n}`)
+    .on("click", (e, d) => { S.work = d.id; drawTimeline(); })
+    .on("keydown", (e, d) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); S.work = d.id; drawTimeline(); } })
+    .on("mousemove", (e, d) => showTip(e, `<b>${esc(d.n)}</b>${d.y} · ${esc(d.k)}<br>Influyó en ${d.nout} obras · ${d.nt ? "entró a rankings" : "sin ranking"}`)).on("mouseleave", hideTip);
+  g.filter(d => d.cy !== base).append("line").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", d => base - d.cy).attr("stroke", "#2EC5CE").attr("stroke-opacity", .5);
+  g.filter(d => d.id === S.work).append("circle").attr("r", d => r(d.nout) + 12).attr("fill", "#A259F7").attr("fill-opacity", .22);
+  g.append("circle").attr("r", d => r(d.nout)).attr("fill", d => d.id === S.work ? "#A259F7" : d.nt ? "#2EC5CE" : "#0B0B14").attr("stroke", d => d.id === S.work ? "#E2CCFF" : "#2EC5CE").attr("stroke-width", 2);
+  const sel = pos.find(d => d.id === S.work);
+  if (sel) {
+    const label = `${sel.y} - ${sel.n}`, w = Math.min(420, label.length * 9 + 28);
+    const lx = Math.max(m.l, Math.min(W - m.r - w, sel.cx - w / 2)), ly = H - 46;
+    svg.append("line").attr("x1", sel.cx).attr("x2", sel.cx).attr("y1", sel.cy + r(sel.nout)).attr("y2", ly).attr("stroke", "#A259F7").attr("stroke-width", 2);
+    svg.append("rect").attr("x", lx).attr("y", ly).attr("width", w).attr("height", 34).attr("rx", 12).attr("fill", "#0B0B14").attr("stroke", "#3C3766");
+    svg.append("text").attr("x", lx + w / 2).attr("y", ly + 22).attr("text-anchor", "middle").attr("fill", "#ECEAF8").attr("font-size", 16).text(label.length > 44 ? label.slice(0, 43) + "…" : label);
+  }
+  if (!data.length) svg.append("text").attr("x", W / 2).attr("y", base - 20).attr("text-anchor", "middle").attr("fill", "#A8A3C8").attr("font-size", 18).text("No hay obras de este género en el período elegido");
+  drawDetail(all.find(d => d.id === S.work));
+}
+function drawDetail(d){
+  const el = document.getElementById("workDetail");
+  if (!d) { el.innerHTML = `<div class="empty" style="grid-column:1/-1">Elige una obra en la línea de tiempo.</div>`; d3.select("#miniNet").selectAll("*").remove(); return; }
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">
+      <h2>${esc(d.n)} (${d.y})</h2>
+      <div class="kv" style="color:var(--text)">${esc(S.genre)} · ${esc(d.k)}</div>
+      <div class="kv">Lanzamiento: <b>${d.y}</b></div>
+      <div class="kv">Ranking de éxitos: <b>${d.nt ? "Sí" : "No"}</b></div>
+      <div class="kv">Intérpretes:</div>
+      <ul style="margin:0;padding-left:22px;font-size:17px">${d.p.length ? d.p.map(p => `<li>${esc(p)}</li>`).join("") : "<li>Sin registro</li>"}</ul>
+    </div>
+    <div>
+      <h2>Influencia en:</h2>
+      <p class="sub" style="margin:2px 0 8px">${d.nout} obras tomaron algo de esta${d.nout > 8 ? ` · se muestran las primeras 8` : ""}</p>
+      <ul class="plain infl">${d.out.length ? d.out.slice(0, 8).map(o => `<li><b>${esc(o.n)}<span class="tag">${TYPES[o.t]}</span></b><span>(${o.y}) · ${esc(o.g)}</span></li>`).join("") : '<li class="sub">Ninguna obra registrada la toma como referencia.</li>'}</ul>
+    </div>`;
+  // mini network
+  const svg = d3.select("#miniNet"); svg.selectAll("*").remove();
+  const W = 420, H = 300, cx = W / 2 + (d.inn.length ? 20 : 0), cy = H / 2;
+  const defs = svg.append("defs");
+  [["mo","#C9A7FF"],["mi","#5FD0D6"]].forEach(([id,c]) => defs.append("marker").attr("id", id).attr("viewBox","0 -5 10 10").attr("refX",9).attr("refY",0).attr("markerUnits","userSpaceOnUse").attr("markerWidth",9).attr("markerHeight",9).attr("orient","auto").append("path").attr("d","M0,-5L10,0L0,5").attr("fill", c));
+  const outs = d.out.slice(0, 6), ins = d.inn.slice(0, 3);
+  const box = (txt) => { const words = txt.split(" "); const lines = []; let cur = ""; words.forEach(w => { if ((cur + " " + w).trim().length > 13) { if (cur) lines.push(cur); cur = w; } else cur = (cur + " " + w).trim(); }); if (cur) lines.push(cur); return lines.slice(0, 3); };
+  const nodes = [{n: d.n, x: cx, y: cy, c: true}];
+  outs.forEach((o, i) => { const a = -Math.PI / 2 + (outs.length === 1 ? Math.PI / 2 : (i / (outs.length - 1)) * Math.PI) ; nodes.push({n: o.n, y0: o.y, x: cx + Math.cos(a) * 140 * (ins.length ? .85 : 1), y: cy + Math.sin(a) * 110, k: "out"}); });
+  ins.forEach((o, i) => nodes.push({n: o.n, y0: o.y, x: 62, y: cy + (i - (ins.length - 1) / 2) * 78, k: "in"}));
+  nodes.forEach(n => { n.lines = box(n.n); n.w = Math.max(...n.lines.map(l => l.length)) * 7.4 + 18; n.h = n.lines.length * 15 + 12; n.x = Math.max(n.w / 2 + 2, Math.min(W - n.w / 2 - 2, n.x)); n.y = Math.max(n.h / 2 + 2, Math.min(H - n.h / 2 - 2, n.y)); });
+  const C = nodes[0];
+  const edge = (a, b) => { const dx = b.x - a.x, dy = b.y - a.y; const t = Math.min((b.w / 2 + 4) / Math.abs(dx || 1e-6), (b.h / 2 + 4) / Math.abs(dy || 1e-6)); const s = Math.min((a.w / 2 + 2) / Math.abs(dx || 1e-6), (a.h / 2 + 2) / Math.abs(dy || 1e-6)); return [a.x + dx * s, a.y + dy * s, b.x - dx * t, b.y - dy * t]; };
+  nodes.slice(1).forEach(n => { const [x1, y1, x2, y2] = n.k === "out" ? edge(C, n) : edge(n, C);
+    svg.append("path").attr("d", `M${x1},${y1}Q${(x1 + x2) / 2 + (y2 - y1) * .15},${(y1 + y2) / 2 - (x2 - x1) * .15} ${x2},${y2}`).attr("fill", "none").attr("stroke", n.k === "out" ? "#C9A7FF" : "#5FD0D6").attr("stroke-width", 1.8).attr("stroke-dasharray", n.k === "in" ? "4 3" : null).attr("marker-end", `url(#${n.k === "out" ? "mo" : "mi"})`); });
+  const g = svg.append("g").selectAll("g").data(nodes).join("g").attr("transform", n => `translate(${n.x},${n.y})`)
+    .on("mousemove", (e, n) => showTip(e, `<b>${esc(n.n)}</b>${n.c ? "Obra seleccionada" : (n.k === "out" ? "Tomó algo de la obra" : "La obra tomó algo de esta") + " · " + n.y0}`)).on("mouseleave", hideTip);
+  g.append("rect").attr("x", n => -n.w / 2).attr("y", n => -n.h / 2).attr("width", n => n.w).attr("height", n => n.h).attr("rx", 9).attr("fill", n => n.c ? "#5B2A9E" : n.k === "in" ? "#173C46" : "#2E1F55").attr("stroke", n => n.c ? "#C9A7FF" : "none");
+  g.each(function(n){ const t = d3.select(this).append("text").attr("text-anchor", "middle").attr("fill", "#F1ECFF").attr("font-size", 12.5).attr("font-weight", n.c ? 700 : 500);
+    n.lines.forEach((l, i) => t.append("tspan").attr("x", 0).attr("y", (i - (n.lines.length - 1) / 2) * 15 + 4).text(l)); });
+  if (!outs.length && !ins.length) svg.append("text").attr("x", W / 2).attr("y", H - 30).attr("text-anchor", "middle").attr("fill", "#A8A3C8").attr("font-size", 13).text("Esta obra no tiene influencias registradas");
+}
+
+/* ---------- EMERGENTES ---------- */
+function metrics(a, Y){
+  const ws = a.w.filter(w => w[0] <= Y); if (!ws.length) return null;
+  const acc = ws.reduce((s, w) => s + w[1], 0);
+  const recent = acc / (Y - ws[0][0] + 1);
+  const inf = a.inf.filter(i => i[0] <= Y);
+  return {...a, acc, recent, ninf: inf.length, infT: inf, debut: ws[0][0], nw: ws.length};
+}
+function drawEm(){
+  document.getElementById("genreEm").value = S.genre;
+  const Y = S.yearEm;
+  const pool = (D.ar[S.genre] || []).map(a => metrics(a, Y)).filter(d => d && d.acc > 0);
+  const pick = new Set([...[...pool].sort((a,b) => b.acc - a.acc).slice(0, 14), ...[...pool].filter(d => d.nw >= 2).sort((a,b) => b.recent - a.recent || b.acc - a.acc).slice(0, 18)].map(d => d.id));
+  S.sel.forEach(id => pick.add(id));
+  const list = pool.filter(d => pick.has(d.id));
+  S.sel = S.sel.filter(id => list.some(a => a.id === id));
+  const W = 860, H = 520, m = {l:60, r:24, t:20, b:56};
+  const svg = d3.select("#quad"); svg.selectAll("*").remove();
+  if (list.length < 2) { svg.append("text").attr("x", W / 2).attr("y", H / 2).attr("text-anchor", "middle").attr("fill", "#A8A3C8").attr("font-size", 18).text("No hay suficientes artistas de este género hasta " + Y); rankList([]); drawCmp([]); return; }
+  const mx = d3.median(list, d => d.acc), my = d3.median(list, d => d.recent);
+  const x = d3.scaleLinear().domain([0, (d3.max(list, d => d.acc) || 1) * 1.08]).range([m.l, W - m.r]);
+  const y = d3.scaleLinear().domain([0, (d3.max(list, d => d.recent) || 1) * 1.12]).range([H - m.b, m.t]);
+  const rs = d3.scaleSqrt().domain([0, d3.max(list, d => d.ninf) || 1]).range([6, 22]);
+  const quad = d => d.recent >= my ? (d.acc < mx ? "em" : "co") : (d.acc < mx ? "bt" : "pi");
+  const Q = [["em","EMERGENTES",m.l,m.t,x(mx),y(my)],["co","CONSOLIDADOS",x(mx),m.t,W-m.r,y(my)],["bt","BAJA TRACCIÓN",m.l,y(my),x(mx),H-m.b],["pi","PIERDEN IMPULSO",x(mx),y(my),W-m.r,H-m.b]];
+  svg.append("g").selectAll("rect").data(Q).join("rect").attr("x", q => q[2]).attr("y", q => q[3]).attr("width", q => q[4] - q[2]).attr("height", q => q[5] - q[3]).attr("fill", q => QC[q[0]]).attr("fill-opacity", .07);
+  svg.append("g").selectAll("text").data(Q).join("text").attr("x", q => q[2] + 12).attr("y", q => q[3] + 24).attr("fill", q => QC[q[0]]).attr("font-size", 14).attr("font-weight", 700).attr("letter-spacing", ".06em").text(q => q[1]);
+  svg.append("line").attr("x1", x(mx)).attr("x2", x(mx)).attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "#5D5888").attr("stroke-dasharray", "5 5");
+  svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(my)).attr("y2", y(my)).attr("stroke", "#5D5888").attr("stroke-dasharray", "5 5");
+  svg.append("g").selectAll("text").data(x.ticks(6)).join("text").attr("x", x).attr("y", H - m.b + 20).attr("text-anchor", "middle").attr("fill", "#A8A3C8").attr("font-size", 12).text(d => d);
+  svg.append("g").selectAll("text").data(y.ticks(5)).join("text").attr("x", m.l - 10).attr("y", d => y(d) + 4).attr("text-anchor", "end").attr("fill", "#A8A3C8").attr("font-size", 12).text(d => d3.format(".1~f")(d).replace(".", ","));
+  svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", H - m.b).attr("y2", H - m.b).attr("stroke", "#D9D6EA");
+  svg.append("line").attr("x1", m.l).attr("x2", m.l).attr("y1", m.t).attr("y2", H - m.b).attr("stroke", "#D9D6EA");
+  svg.append("text").attr("x", (W + m.l) / 2).attr("y", H - 12).attr("text-anchor", "middle").attr("fill", "#ECEAF8").attr("font-size", 14).text("Reconocimiento acumulado (obras en rankings) →");
+  svg.append("text").attr("transform", `translate(18,${(H - m.b + m.t) / 2}) rotate(-90)`).attr("text-anchor", "middle").attr("fill", "#ECEAF8").attr("font-size", 14).text("Obras reconocidas por año de carrera →");
+  // deterministic jitter for identical positions
+  const pos = list.map(d => ({...d, q: quad(d), px: x(d.acc), py: y(d.recent)}));
+  d3.groups(pos, d => d.acc + "|" + d.recent).forEach(([k, arr]) => arr.forEach((d, i) => { const ang = i * 2.4, rad = i ? 10 + i * 4 : 0; d.px += Math.cos(ang) * rad; d.py += Math.sin(ang) * rad; }));
+  const order = [...pos].sort((a, b) => b.ninf - a.ninf);
+  const g = svg.append("g").selectAll("g").data(order).join("g").attr("transform", d => `translate(${d.px},${d.py})`).style("cursor", "pointer")
+    .attr("tabindex", 0).attr("role", "button").attr("aria-label", d => d.n).attr("aria-pressed", d => S.sel.includes(d.id))
+    .on("click", (e, d) => toggle(d.id)).on("keydown", (e, d) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(d.id); } })
+    .on("mousemove", (e, d) => showTip(e, `<b>${esc(d.n)}</b>${esc(d.k)} · debut ${d.debut}<br>${d.acc} obras en rankings · ${d3.format(".1~f")(d.recent).replace(".", ",")} por año de carrera<br>${d.ninf} veces que otros tomaron de su música`)).on("mouseleave", hideTip);
+  g.filter(d => S.sel.includes(d.id)).append("circle").attr("r", d => rs(d.ninf) + 6).attr("fill", "none").attr("stroke", d => SELC[S.sel.indexOf(d.id)]).attr("stroke-width", 2.5);
+  g.append("circle").attr("r", d => rs(d.ninf)).attr("fill", d => QC[d.q]).attr("fill-opacity", d => S.sel.length && !S.sel.includes(d.id) ? .45 : .9).attr("stroke", "#0B0B14").attr("stroke-width", 1.5);
+  g.filter(d => S.sel.includes(d.id)).append("text").attr("text-anchor", "middle").attr("y", 5).attr("fill", "#fff").attr("font-weight", 700).attr("font-size", 14).text(d => "ABCD"[S.sel.indexOf(d.id)]);
+  // labels: selected + biggest, avoid overlaps
+  const boxes = []; [...pos].sort((a, b) => (S.sel.includes(b.id) - S.sel.includes(a.id)) || (b.ninf - a.ninf)).slice(0, 12).forEach(d => {
+    const w = d.n.length * 7.6 + 6, rr = rs(d.ninf);
+    for (const side of [1, -1]) { const x0 = side > 0 ? d.px + rr + 6 : d.px - rr - 6 - w; if (x0 < m.l || x0 + w > W - m.r) continue;
+      if (!boxes.some(b => x0 < b[0] + b[2] && x0 + w > b[0] && Math.abs(d.py - b[1]) < 16)) { boxes.push([x0, d.py, w]); d.lab = side; break; } } });
+  svg.append("g").selectAll("text").data(pos.filter(d => d.lab)).join("text").attr("x", d => d.lab > 0 ? d.px + rs(d.ninf) + 6 : d.px - rs(d.ninf) - 6).attr("y", d => d.py + 5).attr("text-anchor", d => d.lab > 0 ? "start" : "end")
+    .attr("fill", "#ECEAF8").attr("font-size", 13.5).attr("paint-order", "stroke").attr("stroke", "#17152A").attr("stroke-width", 3).attr("pointer-events", "none").text(d => d.n);
+  rankList(pos.filter(d => d.q === "em").sort((a, b) => b.recent - a.recent || a.acc - b.acc).slice(0, 6));
+  drawCmp(S.sel.map(id => pos.find(d => d.id === id)).filter(Boolean));
+}
+function toggle(id){ const i = S.sel.indexOf(id); if (i >= 0) S.sel.splice(i, 1); else { if (S.sel.length >= 4) S.sel.shift(); S.sel.push(id); } drawEm(); }
+function rankList(items){
+  const el = document.getElementById("rank");
+  if (!items.length) { el.innerHTML = `<li class="sub">No hay artistas en el cuadrante de emergentes.</li>`; return; }
+  const mxr = d3.max(items, d => d.recent) || 1;
+  el.innerHTML = items.map((d, i) => `<li><button type="button" aria-pressed="${S.sel.includes(d.id)}" data-id="${d.id}"><span class="top"><span>${i + 1}. ${esc(d.n)}</span><small>${d3.format(".1~f")(d.recent).replace(".", ",")} por año</small></span><span class="bar"><i style="width:${d.recent / mxr * 100}%;background:${S.sel.includes(d.id) ? SELC[S.sel.indexOf(d.id)] : "#22C55E"}"></i></span></button></li>`).join("");
+  el.querySelectorAll("button").forEach(b => b.onclick = () => toggle(+b.dataset.id));
+}
+function drawCmp(sel){
+  const bar = document.getElementById("selbar"), body = document.getElementById("cmpBody");
+  bar.innerHTML = sel.map((d, i) => `<span class="selchip"><i class="dot" style="background:${SELC[i]}"></i>${"ABCD"[i]} · ${esc(d.n)}<button type="button" aria-label="Quitar ${esc(d.n)}" data-id="${d.id}">×</button></span>`).join("");
+  bar.querySelectorAll("button").forEach(b => b.onclick = () => toggle(+b.dataset.id));
+  if (sel.length < 3) { body.innerHTML = `<div class="empty">Selecciona al menos 3 artistas en el gráfico o en el top${sel.length ? ` (llevas ${sel.length})` : ""}.</div>`; return; }
+  body.innerHTML = `<div class="trio">
+    <div class="mini"><h4>Éxitos acumulados</h4><p>Obras en rankings sumadas año a año (últimos 8 años hasta ${S.yearEm}).</p><svg id="c1" class="viz" viewBox="0 0 360 200" role="img" aria-label="Éxitos acumulados"></svg></div>
+    <div class="mini"><h4>Cómo otros usan su música</h4><p>Veces que otras obras tomaron algo de ellos, por tipo.</p><svg id="c2" class="viz" viewBox="0 0 360 170" role="img" aria-label="Tipos de influencia"></svg><div class="legend" style="font-size:11.5px">${Object.entries(TYPES).map(([k,v]) => `<span><i class="dot" style="background:${TYPEC[k]}"></i>${v}</span>`).join("")}</div></div>
+    <div class="mini"><h4>Colaboradores</h4><p>Personas distintas con las que han trabajado en sus obras.</p><svg id="c3" class="viz" viewBox="0 0 360 170" role="img" aria-label="Colaboradores"></svg></div>
+  </div>`;
+  const Y = S.yearEm, y0 = Y - 7;
+  // c1 line
+  { const svg = d3.select("#c1"), W = 360, H = 200, m = {l:34, r:12, t:12, b:28};
+    const series = sel.map(d => { const base = d.w.filter(w => w[0] < y0).reduce((s, w) => s + w[1], 0); let c = base; return d3.range(y0, Y + 1).map(t => { c += d.w.filter(w => w[0] === t).reduce((s, w) => s + w[1], 0); return {t, v: c}; }); });
+    const x = d3.scaleLinear().domain([y0, Y]).range([m.l, W - m.r]), y = d3.scaleLinear().domain([0, d3.max(series.flat(), p => p.v) || 1]).nice().range([H - m.b, m.t]);
+    svg.append("g").selectAll("line").data(y.ticks(4)).join("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y).attr("y2", y).attr("stroke", "#2F2B4D");
+    svg.append("g").selectAll("text").data(y.ticks(4)).join("text").attr("x", m.l - 6).attr("y", d => y(d) + 4).attr("text-anchor", "end").attr("fill", "#A8A3C8").attr("font-size", 11).text(d => d);
+    svg.append("g").selectAll("text").data(d3.range(y0, Y + 1, 2)).join("text").attr("x", x).attr("y", H - 8).attr("text-anchor", "middle").attr("fill", "#A8A3C8").attr("font-size", 11).text(d => d);
+    series.forEach((s, i) => { svg.append("path").attr("d", d3.line().x(p => x(p.t)).y(p => y(p.v))(s)).attr("fill", "none").attr("stroke", SELC[i]).attr("stroke-width", 2.5);
+      svg.append("g").selectAll("circle").data(s).join("circle").attr("cx", p => x(p.t)).attr("cy", p => y(p.v)).attr("r", 2.8).attr("fill", SELC[i]); }); }
+  // c2 stacked
+  { const svg = d3.select("#c2"), W = 360, H = 170, m = {l:26, r:30, t:8, b:10}; const keys = Object.keys(TYPES);
+    const rows = sel.map(d => { const c = {}; keys.forEach(k => c[k] = d.infT.filter(i => i[1] === k).length); return c; });
+    const tot = rows.map(r => keys.reduce((s, k) => s + r[k], 0));
+    const x = d3.scaleLinear().domain([0, Math.max(1, d3.max(tot))]).range([m.l, W - m.r]); const bh = Math.min(34, (H - m.t - m.b) / sel.length - 10);
+    sel.forEach((d, i) => { const yy = m.t + i * ((H - m.t - m.b) / sel.length) + 6; let acc = 0;
+      svg.append("text").attr("x", 4).attr("y", yy + bh / 2 + 5).attr("fill", SELC[i]).attr("font-weight", 700).attr("font-size", 14).text("ABCD"[i]);
+      keys.forEach(k => { const v = rows[i][k]; if (!v) return; const x1 = x(acc), x2 = x(acc + v); acc += v;
+        svg.append("rect").attr("x", x1).attr("y", yy).attr("width", Math.max(0, x2 - x1 - 1)).attr("height", bh).attr("fill", TYPEC[k]);
+        if (x2 - x1 > 16) svg.append("text").attr("x", (x1 + x2) / 2).attr("y", yy + bh / 2 + 4).attr("text-anchor", "middle").attr("fill", "#0B0B14").attr("font-size", 11).attr("font-weight", 700).text(v); });
+      svg.append("text").attr("x", x(tot[i]) + 5).attr("y", yy + bh / 2 + 4).attr("fill", "#ECEAF8").attr("font-size", 12).attr("font-weight", 700).text(tot[i]); }); }
+  // c3 columns
+  { const svg = d3.select("#c3"), W = 360, H = 170, m = {l:12, r:12, t:20, b:28};
+    const x = d3.scaleBand().domain(sel.map((d, i) => i)).range([m.l, W - m.r]).padding(.35), y = d3.scaleLinear().domain([0, Math.max(1, d3.max(sel, d => d.co))]).range([H - m.b, m.t]);
+    sel.forEach((d, i) => { svg.append("rect").attr("x", x(i)).attr("y", y(d.co)).attr("width", x.bandwidth()).attr("height", H - m.b - y(d.co)).attr("rx", 4).attr("fill", SELC[i]);
+      svg.append("text").attr("x", x(i) + x.bandwidth() / 2).attr("y", y(d.co) - 6).attr("text-anchor", "middle").attr("fill", "#ECEAF8").attr("font-size", 13).attr("font-weight", 700).text(d.co);
+      svg.append("text").attr("x", x(i) + x.bandwidth() / 2).attr("y", H - 8).attr("text-anchor", "middle").attr("fill", SELC[i]).attr("font-size", 13).attr("font-weight", 700).text("ABCD"[i]); }); }
+}
+
+/* ---------- start ---------- */
+setGenre(S.genre); syncRange();
+let start = "bienvenida"; try { const h = location.hash.slice(1); if (VIEWS.includes(h)) start = h; } catch(e) {}
+show(start);
+</script>
+
+</body>
+</html>

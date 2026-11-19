@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demostración del multigrafo</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./vendor/d3.v7.9.0.min.js"></script>
+  <script type="module" src="./src/demo.js"></script>
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <a href="./#influencias">Línea de tiempo</a>
+      <h1>Explorador de multigrafos</h1>
+      <p id="status" role="status" aria-live="polite">Cargando datos…</p>
+    </header>
+
+    <section class="panel" aria-labelledby="network-heading">
+      <header class="panel-header">
+        <div>
+          <h2 id="network-heading">Red dirigida</h2>
+          <p>Arrastra los nodos y usa la rueda o los botones para ajustar el zoom.</p>
+        </div>
+        <div class="controls" role="group" aria-label="Controles de la red">
+          <button id="zoom-out" type="button" aria-label="Alejar" disabled>−</button>
+          <button id="zoom-in" type="button" aria-label="Acercar" disabled>+</button>
+          <button id="reset-view" type="button" disabled>Restablecer vista</button>
+        </div>
+      </header>
+      <div id="network"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="degrees-heading">
+      <header class="panel-header">
+        <div>
+          <h2 id="degrees-heading">Grado por nodo</h2>
+          <p>Cada arista cuenta por separado. Un bucle suma una entrada y una salida.</p>
+        </div>
+      </header>
+      <ul class="legend" aria-label="Leyenda">
+        <li><span class="swatch incoming"></span>Entrada</li>
+        <li><span class="swatch outgoing"></span>Salida</li>
+      </ul>
+      <div id="degrees"></div>
+    </section>
+  </main>
+</body>
+</html>

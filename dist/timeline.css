@@ -1,0 +1,62 @@
+.chart-header, .timeline-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+}
+.timeline-filters label, #artist-details label { color: var(--muted); }
+.timeline-filters .years { flex: 1 1 16rem; max-width: 32rem; margin-inline: auto; }
+.dual input:focus { z-index: 1; }
+.chart-scroll { overflow: auto; }
+#timeline {
+  margin-top: .6rem;
+  max-height: clamp(15rem, 42vh, 28rem);
+  border-radius: .65rem;
+  background: #11111e;
+  scrollbar-gutter: stable;
+  overflow-anchor: none;
+}
+#timeline svg { display: block; }
+.timeline-grid { stroke: #59526d; stroke-dasharray: 2 5; }
+.timeline-baseline { stroke: var(--teal); stroke-opacity: .8; }
+.timeline-year { fill: #d0c8e2; font-size: 14px; font-variant-numeric: tabular-nums; }
+.influence-arc { fill: none; stroke: #d7c7e9; stroke-width: 1.45; stroke-opacity: .62; pointer-events: none; }
+.timeline-marker { cursor: pointer; outline: none; }
+.song-hit { fill: transparent; }
+.song-point { fill: var(--teal); pointer-events: none; }
+.song-ring { fill: none; stroke: #f46de0; pointer-events: none; opacity: 0; }
+.song-marker:focus-visible .song-ring { stroke: white; opacity: 1; }
+.song-marker.is-selected .song-point { fill: #f46de0; }
+.song-marker.is-selected .song-ring { opacity: 1; }
+.year-hit { fill: transparent; }
+.year-point { fill: var(--teal); stroke: none; pointer-events: none; }
+.year-count {
+  fill: #101521;
+  font-weight: 750;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+.year-marker.is-open .year-point { fill: #141624; stroke: var(--teal); }
+.year-marker.is-open .year-count { fill: var(--teal); }
+.year-ring { fill: none; stroke: #f46de0; opacity: 0; pointer-events: none; }
+.year-marker.is-selected .year-ring { opacity: 1; }
+.year-marker:focus-visible .year-ring { stroke: white; opacity: 1; }
+.plot-legend { margin-top: .65rem; }
+.influence-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 18px;
+  align-items: start;
+}
+.detail > div { padding-inline: 10px; overflow-wrap: anywhere; }
+.detail .infl { max-height: 24rem; overflow-y: auto; }
+.detail .empty { grid-column: 1 / -1; }
+#work-network { max-height: 22rem; margin-top: .6rem; }
+#network-empty { margin-block: .65rem; }
+.choice:disabled { opacity: .65; cursor: wait; }
+.choice:disabled:hover { transform: none; }
+@media (max-width: 860px) {
+  .influence-layout { grid-template-columns: minmax(0, 1fr); }
+}

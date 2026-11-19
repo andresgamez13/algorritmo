@@ -1,0 +1,20 @@
+{
+  "nodes": [
+    { "id": "a", "label": "Bogotá" },
+    { "id": "b", "label": "Medellín" },
+    { "id": "c", "label": "Cali" },
+    { "id": "d", "label": "Barranquilla" },
+    { "id": "e", "label": "Bucaramanga" }
+  ],
+  "links": [
+    { "id": "ab-1", "source": "a", "target": "b", "label": "Ruta 1" },
+    { "id": "ab-2", "source": "a", "target": "b", "label": "Ruta 2" },
+    { "id": "ba", "source": "b", "target": "a" },
+    { "id": "ac", "source": "a", "target": "c" },
+    { "id": "cb", "source": "c", "target": "b" },
+    { "id": "bd", "source": "b", "target": "d" },
+    { "id": "de", "source": "d", "target": "e" },
+    { "id": "ea", "source": "e", "target": "a" },
+    { "id": "cc", "source": "c", "target": "c", "label": "Ruta local" }
+  ]
+}
